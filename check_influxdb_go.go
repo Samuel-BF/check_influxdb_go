@@ -28,6 +28,8 @@ func main() {
 
     flag.Parse()
 
+    start := time.Now()
+
     u, err := url.Parse(fmt.Sprintf("http://%s:%d", *host, *port))
     if err != nil {
         log.Fatal(err)
@@ -59,33 +61,39 @@ func main() {
             check.AddResult(nagiosplugin.UNKNOWN, "Can't execute query")
             log.Fatal(err)
         }
+
         result, err := (response.Results[0].Series[0].Values[0][1].(json.Number)).Float64()
+
+        duration := time.Since(start)
+
         if err != nil {
-            check.AddResult(nagiosplugin.UNKNOWN, "error parsing result")
+            check.AddResult(nagiosplugin.UNKNOWN, "Error parsing result")
         }
+
+        message := fmt.Sprintf("Got %v in %v", result, duration)
 
         check.AddPerfDatum("value", "", result)
 
         if *warning != "" {
             warnRange, err := nagiosplugin.ParseRange(*warning)
             if err != nil {
-                check.AddResult(nagiosplugin.UNKNOWN, "error parsing warning range")
+                check.AddResult(nagiosplugin.UNKNOWN, "Error parsing warning range")
             }
             if warnRange.Check(result) {
-                check.AddResult(nagiosplugin.WARNING, "Result in warning range")
+                check.AddResult(nagiosplugin.WARNING, message)
             }
-        } 
+        }
 
         if *critical != "" {
             criticalRange, err := nagiosplugin.ParseRange(*critical)
             if err != nil {
-                check.AddResult(nagiosplugin.UNKNOWN, "error parsing critical range")
+                check.AddResult(nagiosplugin.UNKNOWN, "Error parsing critical range")
             }
 
             if criticalRange.Check(result) {
-                check.AddResult(nagiosplugin.WARNING, "Result in critical range")
+                check.AddResult(nagiosplugin.CRITICAL, message)
             }
         }
-        check.AddResult(nagiosplugin.OK, "")
+        check.AddResult(nagiosplugin.OK, message)
     }
 }
