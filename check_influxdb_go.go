@@ -20,7 +20,7 @@
 package main
 
 import (
-      "github.com/influxdb/influxdb/client"
+      "github.com/influxdata/influxdb/client"
       "github.com/olorin/nagiosplugin"
       "net/url"
       "fmt"
