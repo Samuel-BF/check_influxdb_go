@@ -32,6 +32,7 @@ import (
 
 var host = flag.String("H", "localhost", "Host to connect to")
 var port = flag.Int("P", 8086, "Port to connect to")
+var ssl = flag.Bool("ssl", false, "Use SSL/TLS for connection")
 var db = flag.String("d", "metrics", "Database")
 var user = flag.String("u", "", "Influxdb user")
 var password = flag.String("p", "", "Influxdb user password")
@@ -47,7 +48,11 @@ func main() {
 
     start := time.Now()
 
-    u, err := url.Parse(fmt.Sprintf("http://%s:%d", *host, *port))
+    var protocol = "http"
+    if *ssl {
+        protocol = "https"
+    }
+    u, err := url.Parse(fmt.Sprintf("%s://%s:%d", protocol, *host, *port))
     if err != nil {
         log.Fatal(err)
     }
